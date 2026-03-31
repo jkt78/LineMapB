@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LineMap by PRISMqd â€” IV Line Safety Intelligence for Every Care Setting</title>
+  <meta name="description" content="LineMap is a clinical decision support tool that reduces IV line errors and Failure to Rescue events across the full care continuum. Built by nurses, for nurses. Now entering pilot." />
+  <meta name="robots" content="index, follow" />
+  <meta property="og:title" content="LineMap by PRISMqd â€” IV Line Safety Intelligence" />
+  <meta property="og:description" content="A structured, lumen-aware IV line management system that supports safe infusion decisions at the bedside â€” wherever care happens." />
+  <meta property="og:type" content="website" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Mono:ital,wght@0,300;0,400;1,300&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['Cormorant Garamond', 'Georgia', 'serif'],
+            mono: ['DM Mono', 'monospace'],
+            sans: ['Outfit', 'sans-serif'],
+          },
+          colors: {
+            obsidian: '#0a0b0d',
+            ink: '#0f1115',
+            slate: '#161a1f',
+            panel: '#1a1f26',
+            border: '#252b35',
+            muted: '#3a4452',
+            dim: '#5a6878',
+            ghost: '#8a9ab0',
+            silver: '#b8c5d4',
+            light: '#dce6f0',
+            gold: '#c8a96a',
+            goldLight: '#e2c98a',
+            goldDim: '#8a7048',
+            amber: '#d4954a',
+            teal: '#4ab8b8',
+            tealDim: '#2a6868',
+            signal: '#6ab8e8',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; overflow-x: hidden; }
+
+    body {
+      background-color: #0a0b0d;
+      color: #b8c5d4;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 300;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* â”€â”€ Noise texture overlay â”€â”€ */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.35;
+    }
+
+    /* â”€â”€ Typography â”€â”€ */
+    .font-serif { font-family: 'Cormorant Garamond', Georgia, serif; }
+    .font-mono  { font-family: 'DM Mono', monospace; }
+
+    h1, h2 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 300; letter-spacing: -0.02em; }
+    h3, h4  { font-family: 'Outfit', sans-serif; font-weight: 400; letter-spacing: 0.01em; }
+
+    /* â”€â”€ Nav â”€â”€ */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 0 2rem;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(10, 11, 13, 0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(37, 43, 53, 0.6);
+      transition: border-color 0.3s;
+    }
+
+    .nav-logo {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.18em;
+      color: #b8c5d4;
+      text-transform: uppercase;
+    }
+    .nav-logo span {
+      color: #c8a96a;
+    }
+
+    .nav-cta {
+      font-size: 0.72rem;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: 0.12em;
+      color: #c8a96a;
+      border: 1px solid rgba(200, 169, 106, 0.4);
+      padding: 0.45rem 1.1rem;
+      text-transform: uppercase;
+      transition: all 0.25s ease;
+      background: transparent;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .nav-cta:hover {
+      background: rgba(200, 169, 106, 0.08);
+      border-color: rgba(200, 169, 106, 0.8);
+      color: #e2c98a;
+    }
+
+    /* â”€â”€ Sections â”€â”€ */
+    section { position: relative; z-index: 1; }
+
+    /* â”€â”€ Gold line accent â”€â”€ */
+    .gold-line {
+      display: block;
+      width: 2px;
+      height: 48px;
+      background: linear-gradient(to bottom, #c8a96a, transparent);
+      margin: 0 auto;
+    }
+
+    .gold-rule {
+      display: block;
+      width: 48px;
+      height: 1px;
+      background: linear-gradient(to right, #c8a96a, transparent);
+    }
+
+    /* â”€â”€ Hero â”€â”€ */
+    .hero-bg {
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 0%, rgba(200,169,106,0.06) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 40% at 80% 50%, rgba(74,184,184,0.04) 0%, transparent 60%),
+        #0a0b0d;
+    }
+
+    /* â”€â”€ Glow cards â”€â”€ */
+    .glow-card {
+      background: rgba(22, 26, 31, 0.7);
+      border: 1px solid rgba(37, 43, 53, 0.9);
+      transition: border-color 0.35s ease, box-shadow 0.35s ease, transform 0.35s ease;
+    }
+    .glow-card:hover {
+      border-color: rgba(200, 169, 106, 0.25);
+      box-shadow: 0 0 32px rgba(200, 169, 106, 0.06), 0 8px 40px rgba(0,0,0,0.4);
+      transform: translateY(-2px);
+    }
+
+    /* â”€â”€ Step card â”€â”€ */
+    .step-card {
+      background: rgba(22, 26, 31, 0.5);
+      border: 1px solid rgba(37, 43, 53, 0.7);
+      border-left: 2px solid rgba(200, 169, 106, 0.5);
+      transition: all 0.3s ease;
+    }
+    .step-card:hover {
+      border-left-color: #c8a96a;
+      background: rgba(26, 31, 38, 0.7);
+    }
+
+    /* â”€â”€ Stat block â”€â”€ */
+    .stat-block {
+      border-left: 1px solid rgba(200, 169, 106, 0.3);
+      padding-left: 1.5rem;
+    }
+
+    /* â”€â”€ CTA section â”€â”€ */
+    .cta-bg {
+      background:
+        radial-gradient(ellipse 70% 70% at 50% 50%, rgba(200,169,106,0.07) 0%, transparent 70%),
+        rgba(15, 17, 21, 0.95);
+    }
+
+    /* â”€â”€ Primary button â”€â”€ */
+    .btn-primary {
+      display: inline-block;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #0a0b0d;
+      background: linear-gradient(135deg, #c8a96a, #e2c98a);
+      padding: 1rem 2.4rem;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-primary::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent);
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+    .btn-primary:hover::after { opacity: 1; }
+    .btn-primary:hover {
+      box-shadow: 0 0 32px rgba(200, 169, 106, 0.3), 0 8px 24px rgba(0,0,0,0.4);
+      transform: translateY(-1px);
+    }
+    .btn-primary:active { transform: translateY(0); }
+
+    /* â”€â”€ Secondary button â”€â”€ */
+    .btn-secondary {
+      display: inline-block;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #b8c5d4;
+      background: transparent;
+      padding: 1rem 2.4rem;
+      border: 1px solid rgba(184, 197, 212, 0.3);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+    .btn-secondary:hover {
+      border-color: rgba(184, 197, 212, 0.6);
+      color: #dce6f0;
+    }
+
+    /* â”€â”€ Label â”€â”€ */
+    .label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #c8a96a;
+    }
+
+    /* â”€â”€ Divider â”€â”€ */
+    .divider {
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(to right, transparent, rgba(37,43,53,0.8), transparent);
+    }
+
+    /* â”€â”€ Teal accent â”€â”€ */
+    .teal-glow {
+      color: #4ab8b8;
+    }
+
+    /* â”€â”€ Animation â”€â”€ */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes pulseGold {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 0.9; }
+    }
+
+    .anim-fade-up { opacity: 0; animation: fadeUp 0.8s ease forwards; }
+    .delay-1 { animation-delay: 0.15s; }
+    .delay-2 { animation-delay: 0.3s; }
+    .delay-3 { animation-delay: 0.45s; }
+    .delay-4 { animation-delay: 0.6s; }
+
+    /* Scroll-triggered animation */
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* â”€â”€ Form â”€â”€ */
+    .form-input {
+      width: 100%;
+      background: rgba(22, 26, 31, 0.8);
+      border: 1px solid rgba(37, 43, 53, 0.9);
+      color: #dce6f0;
+      padding: 0.85rem 1rem;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 300;
+      outline: none;
+      transition: border-color 0.25s ease, box-shadow 0.25s ease;
+      -webkit-appearance: none;
+    }
+    .form-input::placeholder { color: #5a6878; }
+    .form-input:focus {
+      border-color: rgba(200, 169, 106, 0.5);
+      box-shadow: 0 0 0 3px rgba(200, 169, 106, 0.06);
+    }
+    .form-input.error {
+      border-color: rgba(200, 80, 80, 0.7);
+    }
+    .form-label {
+      display: block;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #8a9ab0;
+      margin-bottom: 0.5rem;
+    }
+    .error-msg {
+      font-size: 0.72rem;
+      color: #e88a8a;
+      margin-top: 0.35rem;
+      display: none;
+    }
+    .error-msg.visible { display: block; }
+
+    /* â”€â”€ Success state â”€â”€ */
+    #form-success {
+      display: none;
+      text-align: center;
+      padding: 3rem 2rem;
+    }
+    #form-success.visible { display: block; }
+
+    /* â”€â”€ Mobile nav toggle â”€â”€ */
+    .mobile-nav-btn {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0.5rem;
+    }
+    @media (max-width: 768px) {
+      .mobile-nav-btn { display: flex; flex-direction: column; gap: 5px; }
+      .mobile-nav-btn span { display: block; width: 22px; height: 1px; background: #b8c5d4; transition: all 0.3s; }
+      .nav-links { display: none; }
+    }
+
+    /* â”€â”€ Separator icon â”€â”€ */
+    .sep-icon {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background: #c8a96a;
+      transform: rotate(45deg);
+      opacity: 0.5;
+    }
+
+    /* â”€â”€ Horizontal scroll prevention â”€â”€ */
+    .container-safe {
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+
+    /* â”€â”€ Pulse dot â”€â”€ */
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+    .pulse-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background: #4ab8b8;
+      border-radius: 50%;
+      animation: pulseDot 2s ease-in-out infinite;
+    }
+
+    /* â”€â”€ Testimonial â”€â”€ */
+    .quote-mark {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 4rem;
+      line-height: 1;
+      color: rgba(200, 169, 106, 0.2);
+      display: block;
+      margin-bottom: -1rem;
+    }
+
+    /* â”€â”€ Scroll indicator â”€â”€ */
+    @keyframes scrollBounce {
+      0%, 100% { transform: translateY(0); opacity: 0.5; }
+      50% { transform: translateY(6px); opacity: 1; }
+    }
+    .scroll-indicator {
+      animation: scrollBounce 2s ease-in-out infinite;
+    }
+
+    /* sticky nav active state */
+    nav.scrolled {
+      border-bottom-color: rgba(37, 43, 53, 1);
+    }
+
+    select.form-input {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%235a6878'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      background-size: 16px;
+      padding-right: 2.5rem;
+    }
+    option { background: #161a1f; }
+  </style>
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "name": "PRISMqd",
+        "alternateName": "Predictive Risk Intelligence & Safety Monitoring",
+        "url": "https://prismqd.ai",
+        "founder": {
+          "@type": "Person",
+          "name": "Jennifer Torrez",
+          "jobTitle": "Founder and CEO",
+          "description": "BSN, RN with 20+ years in critical care and patient safety"
+        },
+        "description": "PRISMqd develops predictive risk intelligence and safety monitoring tools for clinical environments, focusing on Failure to Rescue prevention across the full care continuum."
+      },
+      {
+        "@type": "SoftwareApplication",
+        "name": "LineMap",
+        "applicationCategory": "HealthApplication",
+        "operatingSystem": "Web",
+        "provider": { "@type": "Organization", "name": "PRISMqd" },
+        "description": "LineMap is a clinical decision support tool for IV line and infusion safety. It provides lumen-aware, body-map-driven guidance to support safe medication administration decisions at the bedside.",
+        "offers": {
+          "@type": "Offer",
+          "description": "Pilot access for qualified care settings",
+          "availability": "https://schema.org/LimitedAvailability"
+        }
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What is LineMap?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "LineMap is a structured clinical decision support tool that helps nurses and clinicians manage IV lines and infusion safety across care settings. It uses body-map visualization and lumen-aware logic to surface the right information at the right moment."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Who is LineMap designed for?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "LineMap is designed for nurses, clinical teams, and care operators across acute, post-acute, home health, and ambulatory settings â€” anywhere IV line management occurs."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What stage is LineMap in?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "LineMap has a working prototype and is currently entering its first pilot phase with a committed clinical site. PRISMqd is accepting pilot inquiries from qualified care settings."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How is LineMap different from existing EHR tools?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Existing EHR systems track line documentation but do not provide active safety decision support at the moment of infusion. LineMap is purpose-built for the bedside decision â€” lumen-aware, urgency-sensitive, and designed for use under pressure."
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+
+  <!-- GA4 placeholder -->
+  <!-- <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script> -->
+</head>
+
+<body class="container-safe">
+
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• NAV â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+  <nav id="main-nav" role="navigation" aria-label="Main navigation">
+    <div class="nav-logo">
+      PRISM<span>qd</span> &nbsp;/&nbsp; Line<span>Map</span>
+    </div>
+    <div class="nav-links hidden md:flex items-center gap-8">
+      <a href="#problem" class="text-xs tracking-widest uppercase text-gray-500 hover:text-gray-300 transition-colors duration-200 font-mono" style="font-size:0.65rem; letter-spacing:0.14em;">The Problem</a>
+      <a href="#solution" class="text-xs tracking-widest uppercase text-gray-500 hover:text-gray-300 transition-colors duration-200 font-mono" style="font-size:0.65rem; letter-spacing:0.14em;">The System</a>
+      <a href="#how-it-works" class="text-xs tracking-widest uppercase text-gray-500 hover:text-gray-300 transition-colors duration-200 font-mono" style="font-size:0.65rem; letter-spacing:0.14em;">How It Works</a>
+      <a href="#pilot" class="nav-cta" aria-label="Request pilot access">Request Pilot Access</a>
+    </div>
+    <button class="mobile-nav-btn md:hidden" aria-label="Open menu" id="mobile-menu-btn">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• HERO â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+  <header id="home" class="hero-bg min-h-screen flex flex-col justify-center items-center text-center px-6 pt-16 pb-24 relative" role="banner">
+
+    <!-- Decorative grid lines -->
+    <div aria-hidden="true" style="position:absolute;inset:0;background-image:linear-gradient(rgba(37,43,53,0.15) 1px, transparent 1px),linear-gradient(90deg, rgba(37,43,53,0.15) 1px, transparent 1px);background-size:80px 80px;pointer-events:none;"></div>
+
+    <!-- Corner marks -->
+    <div aria-hidden="true" style="position:absolute;top:80px;left:24px;width:20px;height:20px;border-top:1px solid rgba(200,169,106,0.3);border-left:1px solid rgba(200,169,106,0.3);"></div>
+    <div aria-hidden="true" style="position:absolute;top:80px;right:24px;width:20px;height:20px;border-top:1px solid rgba(200,169,106,0.3);border-right:1px solid rgba(200,169,106,0.3);"></div>
+
+    <div class="max-w-4xl mx-auto relative z-10">
+
+      <div class="anim-fade-up">
+        <span class="label">LineLogic Division &nbsp;Â·&nbsp; PRISMqd</span>
+        <span style="display:inline-flex;align-items:center;gap:0.5rem;margin-left:1rem;">
+          <span class="pulse-dot"></span>
+          <span class="font-mono" style="font-size:0.62rem;letter-spacing:0.16em;text-transform:uppercase;color:#4ab8b8;">Pilot Now Open</span>
+        </span>
+      </div>
+
+      <h1 class="anim-fade-up delay-1 font-serif mt-6" style="font-size:clamp(2.8rem,7vw,5.5rem);line-height:1.08;color:#dce6f0;font-weight:300;">
+        The IV line doesn't care<br/>
+        <em style="color:#c8a96a;font-style:italic;">that you're moving fast.</em>
+      </h1>
+
+      <p class="anim-fade-up delay-2 mt-6 mx-auto" style="max-width:580px;font-size:clamp(1rem,2vw,1.15rem);color:#8a9ab0;font-weight:300;line-height:1.75;">
+        LineMap is a structured clinical decision support tool that gives nurses and care teams lumen-aware, body-map-driven IV line guidance â€” at the moment of infusion, wherever care happens.
+      </p>
+
+      <div class="anim-fade-up delay-3 flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
+        <a href="#pilot" class="btn-primary" aria-label="Request pilot access â€” takes 60 seconds">
+          Request Pilot Access
+        </a>
+        <a href="#solution" class="btn-secondary" aria-label="Learn how LineMap works">
+          See How It Works
+        </a>
+      </div>
+
+      <p class="anim-fade-up delay-4 mt-5 font-mono" style="font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:#3a4452;">
+        No commitment required &nbsp;Â·&nbsp; Takes 60 seconds
+      </p>
+
+    </div>
+
+    <!-- Scroll indicator -->
+    <div class="scroll-indicator absolute bottom-8 left-1/2 -translate-x-1/2" aria-hidden="true">
+      <svg width="20" height="28" viewBox="0 0 20 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="1" width="18" height="22" rx="9" stroke="rgba(90,104,120,0.5)" stroke-width="1"/>
+        <rect x="9" y="6" width="2" height="6" rx="1" fill="rgba(200,169,106,0.6)"/>
+      </svg>
+    </div>
+  </header>
+
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• STATS BAR â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+  <div class="reveal" style="background:rgba(15,17,21,0.95);border-top:1px solid rgba(37,43,53,0.7);border-bottom:1px solid rgba(37,43,53,0.7);">
+    <div class="max-w-5xl mx-auto px-6 py-10 grid grid-cols-1 sm:grid-cols-3 gap-8">
+
+      <div class="stat-block reveal">
+        <p class="font-serif" style="font-size:2.4rem;color:#dce6f0;font-weight:300;line-height:1;">58,000</p>
+        <p class="font-mono mt-1" style="font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;color:#8a9ab0;">Deaths per year attributed to Failure to Rescue in the U.S.</p>
+      </div>
+
+      <div class="stat-block reveal" style="transition-delay:0.1s;">
+        <p class="font-serif" style="font-size:2.4rem;color:#dce6f0;font-weight:300;line-height:1;">7 million</p>
+        <p class="font-mono mt-1" style="font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;color:#8a9ab0;">Patients receive IV therapy outside of hospital settings annually</p>
+      </div>
+
+      <div class="stat-block reveal" style="transition-delay:0.2s;">
+        <p class="font-serif" style="font-size:2.4rem;color:#c8a96a;font-weight:300;line-height:1;">No standard</p>
+        <p class="font-mono mt-1" style="font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;color:#8a9ab0;">Clinical decision tool exists for bedside IV line safety across care settings</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• PROBLEM â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+  <section id="problem" aria-labelledby="problem-heading" style="padding:7rem 1.5rem;">
+    <div class="max-w-5xl mx-auto">
+
+      <div class="reveal text-center mb-16">
+        <span class="label">The Problem</span>
+        <span class="gold-rule mx-auto mt-3" style="display:block;width:32px;height:1px;background:linear-gradient(to right,#c8a96a,transparent);"></span>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+
+        <div class="reveal">
+          <h2 id="problem-heading" class="font-serif" style="font-size:clamp(2rem,4vw,3rem);color:#dce6f0;font-weight:300;line-height:1.15;">
+            The clinician remembers the line.<br/>
+            <em style="color:#c8a96a;">The system doesn't.</em>
+          </h2>
+          <p class="mt-6" style="color:#8a9ab0;font-size:1rem;line-height:1.8;">
+            IV lines migrate. Patient acuity changes. Hand-offs lose detail. And the nurse at the bedside â€” managing four patients, three drips, and a deteriorating vital â€” has to hold all of it in their head.
+          </p>
+          <p class="mt-4" style="color:#8a9ab0;font-size:1rem;line-height:1.8;">
+            That is not a workflow problem. It is a structural gap in how care is documented, communicated, and supported at the moment it matters most.
+          </p>
+          <p class="mt-4" style="color:#8a9ab0;font-size:1rem;line-height:1.8;">
+            Current EHR systems track what happened. They were not designed to guide what to do next â€” lumen by lumen, drug by drug, under pressure.
+          </p>
+        </div>
+
+        <div class="reveal" style="transition-delay:0.15s;">
+          <div class="space-y-4">
+
+            <div class="glow-card p-6">
+              <div class="flex items-start gap-4">
+                <div style="width:2px;height:100%;background:linear-gradient(to bottom,#c8a96a,transparent);flex-shrink:0;min-height:36px;"></div>
+                <div>
+                  <p class="font-mono mb-2" style="font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;color:#c8a96a;">Compatibility uncertainty</p>
+                  <p style="color:#8a9ab0;font-size:0.9rem;line-height:1.7;">Can these two drugs run in the same lumen? Most clinicians have to look it up. Under pressure, some don't.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="glow-card p-6" style="transition-delay:0.1s;">
+              <div class="flex items-start gap-4">
+                <div style="width:2px;height:100%;background:linear-gradient(to bottom,#c8a96a,transparent);flex-shrink:0;min-height:36px;"></div>
+                <div>
+                  <p class="font-mono mb-2" style="font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;color:#c8a96a;">Line context loss across hand-offs</p>
+                  <p style="color:#8a9ab0;font-size:0.9rem;line-height:1.7;">Who placed it, when, where, and what's running â€” this information degrades at every transition of care.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="glow-card p-6" style="transition-delay:0.2s;">
+              <div class="flex items-start gap-4">
+                <div style="width:2px;height:100%;background:linear-gradient(to bottom,#c8a96a,transparent);flex-shrink:0;min-height:36px;"></div>
+                <div>
+                  <p class="font-mono mb-2" style="font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;color:#c8a96a;">Post-acute blind spots</p>
+                  <p style="color:#8a9ab0;font-size:0.9rem;line-height:1.7;">In home health and skilled nursing, IV management happens with fewer resources, less oversight, and no integrated decision support.</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• TENSION BRIDGE â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+  <div class="reveal" style="padding:5rem 1.5rem;background:rgba(15,17,21,0.6);">
+    <div class="max-w-3xl mx-auto text-center">
+      <p class="font-serif" style="font-size:clamp(1.6rem,3.5vw,2.4rem);color:#dce6f0;font-weight:300;line-height:1.4;">
+        "The tools that exist were built for documentation.<br/>
+        <span style="color:#c8a96a;">Not for the decision that's happening right now."</span>
+      </p>
+      <p class="mt-4 font-mono" style="font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:#5a6878;">
+        â€” Jennifer Torrez, BSN, RN &nbsp;Â·&nbsp; Founder, PRISMqd &nbsp;Â·&nbsp; 20+ years critical care
+      </p>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• SOLUTION â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+  <section id="solution" aria-labelledby="solution-heading" style="padding:7rem 1.5rem;">
+    <div class="max-w-5xl mx-auto">
+
+      <div class="reveal text-center mb-16">
+        <span class="label">The System</span>
+        <span class="gold-rule mx-auto mt-3" style="display:block;width:32px;height:1px;background:linear-gradient(to right,#c8a96a,transparent);margin:0 auto;"></span>
+        <h2 id="solution-heading" class="font-serif mt-6" style="font-size:clamp(2rem,4vw,3.2rem);color:#dce6f0;font-weight:300;line-height:1.15;">
+          LineMap gives the bedside decision<br/>a structure it never had.
+        </h2>
+        <p class="mt-5 mx-auto" style="max-width:560px;color:#8a9ab0;font-size:1rem;line-height:1.8;">
+          Not a checklist. Not a documentation layer. A purpose-built decision support tool â€” body-map first, lumen-aware, urgency-sensitive â€” designed to work under real clinical conditions.
+        </p>
+      </div>
+
+      <!-- Feature grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+
+        <div class="glow-card p-7 reveal">
+          <div style="width:32px;height:32px;border:1px solid rgba(200,169,106,0.4);display:flex;align-items:center;justify-content:center;margin-bottom:1.25rem;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c8a96a" stroke-width="1.5" aria-hidden="true"><path d="M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+          </div>
+          <h3 style="font-size:0.95rem;color:#dce6f0;font-weight:400;margin-bottom:0.75rem;">Body-Map First</h3>
+          <p style="font-size:0.88rem;color:#5a6878;line-height:1.75;">The interface starts with the patient's anatomy â€” not a dropdown. Clinicians locate the line spatially, the way they actually think.</p>
+        </div>
+
+        <div class="glow-card p-7 reveal" style="transition-delay:0.1s;">
+          <div style="width:32px;height:32px;border:1px solid rgba(200,169,106,0.4);display:flex;align-items:center;justify-content:center;margin-bottom:1.25rem;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c8a96a" stroke-width="1.5" aria-hidden="true"><path d="M9 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9l-6-6z"/><path d="M9 3v6h6"/></svg>
+          </div>
+          <h3 style="font-size:0.95rem;color:#dce6f0;font-weight:400;margin-bottom:0.75rem;">Lumen-Aware Logic</h3>
+          <p style="font-size:0.88rem;color:#5a6878;line-height:1.75;">Each lumen is tracked independently. Compatibility checks surface at the point of decision â€” not buried in a reference document.</p>
+        </div>
+
+        <div class="glow-card p-7 reveal" style="transition-delay:0.2s;">
+          <div style="width:32px;height:32px;border:1px solid rgba(200,169,106,0.4);display:flex;align-items:center;justify-content:center;margin-bottom:1.25rem;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c8a96a" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+          </div>
+          <h3 style="font-size:0.95rem;color:#dce6f0;font-weight:400;margin-bottom:0.75rem;">Urgency-Sensitive</h3>
+          <p style="font-size:0.88rem;color:#5a6878;line-height:1.75;">Designed for the moment of urgency, not for documentation catch-up. The UI prioritizes speed and clarity when conditions are most demanding.</p>
+        </div>
+
+        <div class="glow-card p-7 reveal" style="transition-delay:0.05s;">
+          <div style="width:32px;height:32px;border:1px solid rgba(200,169,106,0.4);display:flex;align-items:center;justify-content:center;margin-bottom:1.25rem;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c8a96a" stroke-width="1.5" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <h3 style="font-size:0.95rem;color:#dce6f0;font-weight:400;margin-bottom:0.75rem;">Hand-Off Continuity</h3>
+          <p style="font-size:0.88rem;color:#5a6878;line-height:1.75;">Line state persists across shifts and transitions. The incoming nurse inherits a complete, structured picture â€” not a verbal summary.</p>
+        </div>
+
+        <div class="glow-card p-7 reveal" style="transition-delay:0.15s;">
+          <div style="width:32px;height:32px;border:1px solid rgba(200,169,106,0.4);display:flex;align-items:center;justify-content:center;margin-bottom:1.25rem;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c8a96a" stroke-width="1.5" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          </div>
+          <h3 style="font-size:0.95rem;color:#dce6f0;font-weight:400;margin-bottom:0.75rem;">Care Continuum Ready</h3>
+          <p style="font-size:0.88rem;color:#5a6878;line-height:1.75;">Designed for acute, post-acute, home health, and ambulatory settings â€” not just the ICU. Where IV lines go, LineMap works.</p>
+        </div>
+
+        <div class="glow-card p-7 reveal" style="transition-delay:0.25s;">
+          <div style="width:32px;height:32px;border:1px solid rgba(200,169,106,0.4);display:flex;align-items:center;justify-content:center;margin-bottom:1.25rem;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c8a96a" stroke-width="1.5" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <h3 style="font-size:0.95rem;color:#dce6f0;font-weight:400;margin-bottom:0.75rem;">Trauma-Informed Language</h3>
+          <p style="font-size:0.88rem;color:#5a6878;line-height:1.75;">Every interaction is designed with patient dignity in mind. OMO-informed language supports communication across sensitive clinical contexts.</p>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• HOW IT WORKS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+  <section id="how-it-works" aria-labelledby="how-heading" style="padding:7rem 1.5rem;background:rgba(15,17,21,0.5);">
+    <div class="max-w-4xl mx-auto">
+
+      <div class="reveal text-center mb-16">
+        <span class="label">How It Works</span>
+        <span style="display:block;width:32px;height:1px;background:linear-gradient(to right,#c8a96a,transparent);margin:0.75rem auto 0;"></span>
+        <h2 id="how-heading" class="font-serif mt-6" style="font-size:clamp(1.8rem,4vw,2.8rem);color:#dce6f0;font-weight:300;line-height:1.2;">
+          Three steps from uncertainty to clarity.
+        </h2>
+      </div>
+
+      <div class="space-y-5">
+
+        <div class="step-card p-7 reveal">
+          <div class="flex items-start gap-6">
+            <span class="font-serif" style="font-size:2.8rem;color:rgba(200,169,106,0.3);font-weight:300;line-height:1;flex-shrink:0;">01</span>
+            <div>
+              <h3 style="font-size:1rem;color:#dce6f0;font-weight:400;margin-bottom:0.5rem;">Locate the line on the body map</h3>
+              <p style="font-size:0.9rem;color:#5a6878;line-height:1.75;">The clinician taps the insertion site on an anatomical figure. LineMap retrieves the line's full context â€” type, lumens, age, active infusions.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card p-7 reveal" style="transition-delay:0.1s;">
+          <div class="flex items-start gap-6">
+            <span class="font-serif" style="font-size:2.8rem;color:rgba(200,169,106,0.3);font-weight:300;line-height:1;flex-shrink:0;">02</span>
+            <div>
+              <h3 style="font-size:1rem;color:#dce6f0;font-weight:400;margin-bottom:0.5rem;">Select the intended infusion</h3>
+              <p style="font-size:0.9rem;color:#5a6878;line-height:1.75;">The clinician indicates what they intend to administer. LineMap evaluates compatibility against the active lumen configuration in real time.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card p-7 reveal" style="transition-delay:0.2s;">
+          <div class="flex items-start gap-6">
+            <span class="font-serif" style="font-size:2.8rem;color:rgba(200,169,106,0.3);font-weight:300;line-height:1;flex-shrink:0;">03</span>
+            <div>
+              <h3 style="font-size:1rem;color:#dce6f0;font-weight:400;margin-bottom:0.5rem;">Receive a structured, actionable guidance</h3>
+              <p style="font-size:0.9rem;color:#5a6878;line-height:1.75;">LineMap surfaces a clear recommendation â€” proceed, caution, or escalate â€” with the clinical rationale visible and the hand-off record automatically updated.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- CTA mid-page -->
+      <div class="reveal text-center mt-14">
+        <a href="#pilot" class="btn-primary" aria-label="Request pilot access to LineMap">
+          Request Pilot Access
+        </a>
+        <p class="mt-4 font-mono" style="font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:#3a4452;">
+          No commitment &nbsp;Â·&nbsp; 60 seconds to register interest
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• TRUST / CREDIBILITY â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+  <section aria-labelledby="credibility-heading" style="padding:7rem 1.5rem;">
+    <div class="max-w-5xl mx-auto">
+
+      <div class="reveal text-center mb-16">
+        <span class="label">Built From Real Practice</span>
+        <span style="display:block;width:32px;height:1px;background:linear-gradient(to right,#c8a96a,transparent);margin:0.75rem auto 0;"></span>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+
+        <!-- Founder credibility -->
+        <div class="reveal">
+          <div class="glow-card p-8">
+            <span class="quote-mark" aria-hidden="true">"</span>
+            <p class="font-serif mt-2" style="font-size:1.25rem;color:#dce6f0;font-weight:300;line-height:1.55;font-style:italic;">
+              I spent two decades at the bedside watching good nurses make unsafe decisions because the system they were given didn't support them at the moment it mattered. LineMap is what I needed then.
+            </p>
+            <div class="mt-6 flex items-center gap-4">
+              <div style="width:40px;height:40px;background:rgba(200,169,106,0.1);border:1px solid rgba(200,169,106,0.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c8a96a" stroke-width="1.5" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </div>
+              <div>
+                <p style="font-size:0.85rem;color:#dce6f0;font-weight:400;">Jennifer Torrez, BSN, RN</p>
+                <p class="font-mono" style="font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:#5a6878;">Founder & CEO, PRISMqd &nbsp;Â·&nbsp; 20+ Years Critical Care</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Credibility markers -->
+        <div class="reveal space-y-5" style="transition-delay:0.15s;" id="credibility-heading">
+          <h2 class="font-serif" style="font-size:clamp(1.5rem,3vw,2rem);color:#dce6f0;font-weight:300;line-height:1.3;display:none;">Credibility and Trust</h2>
+
+          <div class="flex items-start gap-4">
+            <div style="width:6px;height:6px;background:#c8a96a;transform:rotate(45deg);flex-shrink:0;margin-top:7px;"></div>
+            <div>
+              <p style="font-size:0.9rem;color:#dce6f0;font-weight:400;margin-bottom:0.25rem;">20+ Years at the Bedside</p>
+              <p style="font-size:0.85rem;color:#5a6878;line-height:1.7;">PRISMqd was founded by a critical care nurse, not a product team. The problem definition comes from lived clinical experience, not market research.</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-4" style="transition-delay:0.05s;">
+            <div style="width:6px;height:6px;background:#c8a96a;transform:rotate(45deg);flex-shrink:0;margin-top:7px;"></div>
+            <div>
+              <p style="font-size:0.9rem;color:#dce6f0;font-weight:400;margin-bottom:0.25rem;">Clinical Advisory Embedded from Day One</p>
+              <p style="font-size:0.85rem;color:#5a6878;line-height:1.7;">Dr. Jacob Monestersky, DO is a committed clinical advisor and pilot site lead â€” providing active medical oversight of the system's clinical logic.</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-4" style="transition-delay:0.1s;">
+            <div style="width:6px;height:6px;background:#c8a96a;transform:rotate(45deg);flex-shrink:0;margin-top:7px;"></div>
+            <div>
+              <p style="font-size:0.9rem;color:#dce6f0;font-weight:400;margin-bottom:0.25rem;">Global Patient Safety Initiative</p>
+              <p style="font-size:0.85rem;color:#5a6878;line-height:1.7;">Jennifer chairs the Systems & Policy Committee at the Global Patient Safety Initiative â€” directly connecting LineMap to the broader patient safety research ecosystem.</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-4" style="transition-delay:0.15s;">
+            <div style="width:6px;height:6px;background:#c8a96a;transform:rotate(45deg);flex-shrink:0;margin-top:7px;"></div>
+            <div>
+              <p style="font-size:0.9rem;color:#dce6f0;font-weight:400;margin-bottom:0.25rem;">IP-Protected Framework</p>
+              <p style="font-size:0.85rem;color:#5a6878;line-height:1.7;">LineMap's clinical logic and structural frameworks are backed by a provisional patent filing and trademark registration underway.</p>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• TRACTION â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+  <div class="reveal" style="padding:5rem 1.5rem;background:rgba(15,17,21,0.6);">
+    <div class="max-w-5xl mx-auto">
+
+      <div class="text-center mb-10 reveal">
+        <span class="label">Traction &amp; Stage</span>
+        <span style="display:block;width:32px;height:1px;background:linear-gradient(to right,#c8a96a,transparent);margin:0.75rem auto 0;"></span>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-5">
+
+        <div class="glow-card p-5 text-center reveal">
+          <p class="font-serif" style="font-size:1.6rem;color:#c8a96a;font-weight:300;line-height:1;">Working</p>
+          <p class="font-mono mt-1" style="font-size:0.58rem;letter-spacing:0.14em;text-transform:uppercase;color:#5a6878;">Prototype deployed</p>
+        </div>
+
+        <div class="glow-card p-5 text-center reveal" style="transition-delay:0.1s;">
+          <p class="font-serif" style="font-size:1.6rem;color:#c8a96a;font-weight:300;line-height:1;">Pilot</p>
+          <p class="font-mono mt-1" style="font-size:0.58rem;letter-spacing:0.14em;text-transform:uppercase;color:#5a6878;">Committed site secured</p>
+        </div>
+
+        <div class="glow-card p-5 text-center reveal" style="transition-delay:0.2s;">
+          <p class="font-serif" style="font-size:1.6rem;color:#c8a96a;font-weight:300;line-height:1;">Provisional</p>
+          <p class="font-mono mt-1" style="font-size:0.58rem;letter-spacing:0.14em;text-transform:uppercase;color:#5a6878;">Patent filed</p>
+        </div>
+
+        <div class="glow-card p-5 text-center reveal" style="transition-delay:0.3s;">
+          <p class="font-serif" style="font-size:1.6rem;color:#c8a96a;font-weight:300;line-height:1;">$1.5M</p>
+          <p class="font-mono mt-1" style="font-size:0.58rem;letter-spacing:0.14em;text-transform:uppercase;color:#5a6878;">Pre-seed raise in progress</p>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• FAQ â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+  <section aria-labelledby="faq-heading" style="padding:7rem 1.5rem;">
+    <div class="max-w-3xl mx-auto">
+
+      <div class="reveal text-center mb-14">
+        <span class="label">Common Questions</span>
+        <span style="display:block;width:32px;height:1px;background:linear-gradient(to right,#c8a96a,transparent);margin:0.75rem auto 0;"></span>
+        <h2 id="faq-heading" class="font-serif mt-5" style="font-size:clamp(1.6rem,3.5vw,2.4rem);color:#dce6f0;font-weight:300;">Before you decide, know this.</h2>
+      </div>
+
+      <div id="faq-container" class="space-y-2">
+
+        <div class="faq-item glow-card reveal" style="overflow:hidden;">
+          <button class="faq-trigger w-full text-left p-6 flex items-center justify-between" aria-expanded="false">
+            <span style="font-size:0.95rem;color:#dce6f0;font-weight:400;">What is LineMap, exactly?</span>
+            <svg class="faq-icon flex-shrink-0 ml-4 transition-transform duration-300" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#c8a96a" stroke-width="1.5" aria-hidden="true"><path d="M2 5l5 5 5-5"/></svg>
+          </button>
+          <div class="faq-answer" style="max-height:0;overflow:hidden;transition:max-height 0.35s ease;">
+            <p style="padding:0 1.5rem 1.5rem;font-size:0.9rem;color:#5a6878;line-height:1.8;">LineMap is a clinical decision support tool for IV line and infusion safety. It gives nurses a structured, body-map-driven interface to assess line status, check infusion compatibility, and maintain a continuous record across hand-offs â€” at the moment the decision is needed.</p>
+          </div>
+        </div>
+
+        <div class="faq-item glow-card reveal" style="overflow:hidden;transition-delay:0.05s;">
+          <button class="faq-trigger w-full text-left p-6 flex items-center justify-between" aria-expanded="false">
+            <span style="font-size:0.95rem;color:#dce6f0;font-weight:400;">Who is it designed for?</span>
+            <svg class="faq-icon flex-shrink-0 ml-4 transition-transform duration-300" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#c8a96a" stroke-width="1.5" aria-hidden="true"><path d="M2 5l5 5 5-5"/></svg>
+          </button>
+          <div class="faq-answer" style="max-height:0;overflow:hidden;transition:max-height 0.35s ease;">
+            <p style="padding:0 1.5rem 1.5rem;font-size:0.9rem;color:#5a6878;line-height:1.8;">LineMap is designed for nurses and clinical teams working in any setting where IV line management occurs â€” acute care, ICU, post-acute facilities, skilled nursing, home health, and ambulatory settings. It is especially suited for environments with limited oversight and high hand-off frequency.</p>
+          </div>
+        </div>
+
+        <div class="faq-item glow-card reveal" style="overflow:hidden;transition-delay:0.1s;">
+          <button class="faq-trigger w-full text-left p-6 flex items-center justify-between" aria-expanded="false">
+            <span style="font-size:0.95rem;color:#dce6f0;font-weight:400;">How is this different from what's in our EHR?</span>
+            <svg class="faq-icon flex-shrink-0 ml-4 transition-transform duration-300" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#c8a96a" stroke-width="1.5" aria-hidden="true"><path d="M2 5l5 5 5-5"/></svg>
+          </button>
+          <div class="faq-answer" style="max-height:0;overflow:hidden;transition:max-height 0.35s ease;">
+            <p style="padding:0 1.5rem 1.5rem;font-size:0.9rem;color:#5a6878;line-height:1.8;">EHR systems track what has been documented. LineMap supports what the clinician needs to decide right now. It is purpose-built for the bedside decision â€” lumen-specific, urgency-sensitive, and designed to function as a decision layer alongside, not instead of, existing documentation infrastructure.</p>
+          </div>
+        </div>
+
+        <div class="faq-item glow-card reveal" style="overflow:hidden;transition-delay:0.15s;">
+          <button class="faq-trigger w-full text-left p-6 flex items-center justify-between" aria-expanded="false">
+            <span style="font-size:0.95rem;color:#dce6f0;font-weight:400;">What stage is LineMap in right now?</span>
+            <svg class="faq-icon flex-shrink-0 ml-4 transition-transform duration-300" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#c8a96a" stroke-width="1.5" aria-hidden="true"><path d="M2 5l5 5 5-5"/></svg>
+          </button>
+          <div class="faq-answer" style="max-height:0;overflow:hidden;transition:max-height 0.35s ease;">
+            <p style="padding:0 1.5rem 1.5rem;font-size:0.9rem;color:#5a6878;line-height:1.8;">LineMap has a working, deployed prototype and a committed clinical pilot site. We are now accepting pilot inquiries from qualified care settings. The pre-seed funding round is active and the system is under active development with a clinical advisory team in place.</p>
+          </div>
+        </div>
+
+        <div class="faq-item glow-card reveal" style="overflow:hidden;transition-delay:0.2s;">
+          <button class="faq-trigger w-full text-left p-6 flex items-center justify-between" aria-expanded="false">
+            <span style="font-size:0.95rem;color:#dce6f0;font-weight:400;">What does requesting pilot access involve?</span>
+            <svg class="faq-icon flex-shrink-0 ml-4 transition-transform duration-300" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#c8a96a" stroke-width="1.5" aria-hidden="true"><path d="M2 5l5 5 5-5"/></svg>
+          </button>
+          <div class="faq-answer" style="max-height:0;overflow:hidden;transition:max-height 0.35s ease;">
+            <p style="padding:0 1.5rem 1.5rem;font-size:0.9rem;color:#5a6878;line-height:1.8;">Completing the form below takes approximately 60 seconds. We will review your submission and follow up within 3â€“5 business days to assess fit. There is no commitment at this stage â€” this is a discovery conversation, not a contract.</p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• FINAL CTA / FORM â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+  <section id="pilot" aria-labelledby="cta-heading" style="padding:7rem 1.5rem;">
+    <div class="cta-bg" style="max-width:680px;margin:0 auto;padding:3.5rem 2.5rem;border:1px solid rgba(37,43,53,0.8);position:relative;">
+
+      <!-- corner marks -->
+      <div aria-hidden="true" style="position:absolute;top:-1px;left:-1px;width:16px;height:16px;border-top:2px solid rgba(200,169,106,0.5);border-left:2px solid rgba(200,169,106,0.5);"></div>
+      <div aria-hidden="true" style="position:absolute;top:-1px;right:-1px;width:16px;height:16px;border-top:2px solid rgba(200,169,106,0.5);border-right:2px solid rgba(200,169,106,0.5);"></div>
+      <div aria-hidden="true" style="position:absolute;bottom:-1px;left:-1px;width:16px;height:16px;border-bottom:2px solid rgba(200,169,106,0.5);border-left:2px solid rgba(200,169,106,0.5);"></div>
+      <div aria-hidden="true" style="position:absolute;bottom:-1px;right:-1px;width:16px;height:16px;border-bottom:2px solid rgba(200,169,106,0.5);border-right:2px solid rgba(200,169,106,0.5);"></div>
+
+      <div class="reveal text-center mb-8">
+        <span class="label">Request Pilot Access</span>
+        <h2 id="cta-heading" class="font-serif mt-4" style="font-size:clamp(1.8rem,3.5vw,2.6rem);color:#dce6f0;font-weight:300;line-height:1.2;">
+          Ready to bring structured<br/>line safety to your team?
+        </h2>
+        <p class="mt-4" style="font-size:0.9rem;color:#5a6878;line-height:1.75;">
+          We're accepting a limited number of pilot partners for this phase. Tell us about your setting â€” we'll be in touch within 3â€“5 business days.
+        </p>
+      </div>
+
+      <!-- Form -->
+      <div id="form-success" role="alert" aria-live="polite">
+        <div style="width:48px;height:48px;border:1px solid rgba(74,184,184,0.4);display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4ab8b8" stroke-width="1.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+        </div>
+        <h3 class="font-serif" style="font-size:1.6rem;color:#dce6f0;font-weight:300;margin-bottom:0.75rem;">We received your request.</h3>
+        <p style="font-size:0.9rem;color:#5a6878;line-height:1.75;">Expect a response from the PRISMqd team within 3â€“5 business days. We review every submission personally.</p>
+      </div>
+
+      <form id="pilot-form" novalidate aria-label="Pilot access request form">
+        <div class="space-y-5">
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div>
+              <label class="form-label" for="first-name">First Name</label>
+              <input class="form-input" type="text" id="first-name" name="first_name" placeholder="Jennifer" autocomplete="given-name" required />
+              <span class="error-msg" id="first-name-error" role="alert">First name is required.</span>
+            </div>
+            <div>
+              <label class="form-label" for="last-name">Last Name</label>
+              <input class="form-input" type="text" id="last-name" name="last_name" placeholder="Torrez" autocomplete="family-name" required />
+              <span class="error-msg" id="last-name-error" role="alert">Last name is required.</span>
+            </div>
+          </div>
+
+          <div>
+            <label class="form-label" for="email">Work Email</label>
+            <input class="form-input" type="email" id="email" name="email" placeholder="you@organization.org" autocomplete="email" required />
+            <span class="error-msg" id="email-error" role="alert">A valid work email is required.</span>
+          </div>
+
+          <div>
+            <label class="form-label" for="org">Organization</label>
+            <input class="form-input" type="text" id="org" name="organization" placeholder="Hospital, SNF, Home Health Agency..." autocomplete="organization" required />
+            <span class="error-msg" id="org-error" role="alert">Organization name is required.</span>
+          </div>
+
+          <div>
+            <label class="form-label" for="role">Your Role</label>
+            <input class="form-input" type="text" id="role" name="role" placeholder="CNO, Director of Nursing, Clinician..." required />
+            <span class="error-msg" id="role-error" role="alert">Your role is required.</span>
+          </div>
+
+          <div>
+            <label class="form-label" for="setting">Care Setting</label>
+            <select class="form-input" id="setting" name="setting" required>
+              <option value="" disabled selected>Select your primary care setting</option>
+              <option value="acute">Acute Care / Hospital</option>
+              <option value="icu">ICU / Critical Care</option>
+              <option value="skilled-nursing">Skilled Nursing Facility</option>
+              <option value="home-health">Home Health</option>
+              <option value="ambulatory">Ambulatory / Outpatient Infusion</option>
+              <option value="other">Other</option>
+            </select>
+            <span class="error-msg" id="setting-error" role="alert">Please select your care setting.</span>
+          </div>
+
+          <div>
+            <label class="form-label" for="message">What draws you to LineMap? (optional)</label>
+            <textarea class="form-input" id="message" name="message" rows="3" placeholder="Current challenges, interest areas, or questions..." style="resize:vertical;min-height:80px;"></textarea>
+          </div>
+
+          <div>
+            <button type="submit" id="submit-btn" class="btn-primary w-full justify-center" style="width:100%;text-align:center;" aria-label="Submit pilot access request">
+              <span id="submit-text">Request Pilot Access</span>
+              <span id="submit-loading" style="display:none;">Processing...</span>
+            </button>
+          </div>
+
+          <p style="font-size:0.7rem;color:#3a4452;text-align:center;line-height:1.6;">
+            No commitment required. We review every inquiry personally.
+            Your information will not be shared. &nbsp;Â·&nbsp;
+            <a href="#" style="color:#5a6878;text-decoration:none;border-bottom:1px solid rgba(90,104,120,0.3);" tabindex="0">Privacy Policy</a>
+          </p>
+
+        </div>
+      </form>
+
+    </div>
+  </section>
+
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• FOOTER â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+  <footer style="padding:3rem 1.5rem;border-top:1px solid rgba(37,43,53,0.6);" role="contentinfo">
+    <div class="max-w-5xl mx-auto">
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+
+        <div>
+          <p class="nav-logo" style="font-size:0.65rem;">PRISM<span style="color:#c8a96a;">qd</span> &nbsp;/&nbsp; Line<span style="color:#c8a96a;">Map</span></p>
+          <p class="font-mono mt-1" style="font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;color:#3a4452;">Predictive Risk Intelligence &amp; Safety Monitoring</p>
+          <p class="font-mono mt-1" style="font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;color:#3a4452;">LineLogic Division &nbsp;Â·&nbsp; Pre-Seed Stage &nbsp;Â·&nbsp; <a href="https://prismqd.ai" style="color:#5a6878;text-decoration:none;border-bottom:1px solid rgba(90,104,120,0.2);">prismqd.ai</a></p>
+        </div>
+
+        <div class="flex flex-col items-start md:items-end gap-2">
+          <p class="font-mono" style="font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;color:#3a4452;">
+            &copy; 2025 PRISMqd. All rights reserved.
+          </p>
+          <p class="font-mono" style="font-size:0.58rem;letter-spacing:0.1em;text-transform:uppercase;color:#3a4452;">
+            LineMap and LumenLogic are trademarks of PRISMqd.
+          </p>
+          <p class="font-mono" style="font-size:0.58rem;letter-spacing:0.1em;text-transform:uppercase;color:#2a3240;">
+            Provisional patent pending. Clinical decision support only. Not a substitute for clinical judgment.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </footer>
+
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• JAVASCRIPT â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+  <script>
+    // â”€â”€ Defensive utilities â”€â”€
+    function safeQuery(selector) {
+      try { return document.querySelector(selector); } catch(e) { return null; }
+    }
+    function safeQueryAll(selector) {
+      try { return document.querySelectorAll(selector); } catch(e) { return []; }
+    }
+
+    // â”€â”€ Nav scroll state â”€â”€
+    (function() {
+      var nav = safeQuery('#main-nav');
+      if (!nav) return;
+      var ticking = false;
+      function onScroll() {
+        if (!ticking) {
+          requestAnimationFrame(function() {
+            if (window.scrollY > 10) { nav.classList.add('scrolled'); }
+            else { nav.classList.remove('scrolled'); }
+            ticking = false;
+          });
+          ticking = true;
+        }
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+    })();
+
+    // â”€â”€ Smooth scroll with nav offset â”€â”€
+    (function() {
+      var NAV_HEIGHT = 64;
+      document.addEventListener('click', function(e) {
+        var anchor = e.target.closest('a[href^="#"]');
+        if (!anchor) return;
+        var href = anchor.getAttribute('href');
+        if (!href || href === '#') return;
+        var target = null;
+        try { target = document.querySelector(href); } catch(err) { return; }
+        if (!target) return;
+        e.preventDefault();
+        var top = target.getBoundingClientRect().top + window.pageYOffset - NAV_HEIGHT;
+        window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+      });
+    })();
+
+    // â”€â”€ Scroll reveal â”€â”€
+    (function() {
+      var elements = safeQueryAll('.reveal');
+      if (!elements.length) return;
+
+      if ('IntersectionObserver' in window) {
+        var io = new IntersectionObserver(function(entries) {
+          entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('visible');
+              io.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+        elements.forEach(function(el) { io.observe(el); });
+      } else {
+        // Fallback: show all
+        elements.forEach(function(el) { el.classList.add('visible'); });
+      }
+    })();
+
+    // â”€â”€ FAQ accordion â”€â”€
+    (function() {
+      var triggers = safeQueryAll('.faq-trigger');
+      triggers.forEach(function(trigger) {
+        trigger.addEventListener('click', function() {
+          var item = trigger.closest('.faq-item');
+          if (!item) return;
+          var answer = item.querySelector('.faq-answer');
+          var icon   = item.querySelector('.faq-icon');
+          if (!answer) return;
+
+          var isOpen = trigger.getAttribute('aria-expanded') === 'true';
+
+          // Close all others
+          safeQueryAll('.faq-item').forEach(function(other) {
+            if (other === item) return;
+            var otherAnswer  = other.querySelector('.faq-answer');
+            var otherTrigger = other.querySelector('.faq-trigger');
+            var otherIcon    = other.querySelector('.faq-icon');
+            if (otherAnswer)  { otherAnswer.style.maxHeight  = '0'; }
+            if (otherTrigger) { otherTrigger.setAttribute('aria-expanded', 'false'); }
+            if (otherIcon)    { otherIcon.style.transform = 'rotate(0deg)'; }
+          });
+
+          if (isOpen) {
+            answer.style.maxHeight = '0';
+            trigger.setAttribute('aria-expanded', 'false');
+            if (icon) { icon.style.transform = 'rotate(0deg)'; }
+          } else {
+            answer.style.maxHeight = answer.scrollHeight + 'px';
+            trigger.setAttribute('aria-expanded', 'true');
+            if (icon) { icon.style.transform = 'rotate(180deg)'; }
+          }
+        });
+      });
+    })();
+
+    // â”€â”€ Form validation & submission â”€â”€
+    (function() {
+      var form    = safeQuery('#pilot-form');
+      var success = safeQuery('#form-success');
+      var submitBtn  = safeQuery('#submit-btn');
+      var submitText = safeQuery('#submit-text');
+      var submitLoad = safeQuery('#submit-loading');
+
+      if (!form) return;
+
+      function showError(inputId, msgId) {
+        var input = safeQuery('#' + inputId);
+        var msg   = safeQuery('#' + msgId);
+        if (input) { input.classList.add('error'); }
+        if (msg)   { msg.classList.add('visible'); }
+      }
+
+      function clearError(inputId, msgId) {
+        var input = safeQuery('#' + inputId);
+        var msg   = safeQuery('#' + msgId);
+        if (input) { input.classList.remove('error'); }
+        if (msg)   { msg.classList.remove('visible'); }
+      }
+
+      function isValidEmail(val) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
+      }
+
+      // Live error clearing
+      var fields = [
+        { id: 'first-name', errId: 'first-name-error' },
+        { id: 'last-name',  errId: 'last-name-error'  },
+        { id: 'email',      errId: 'email-error'      },
+        { id: 'org',        errId: 'org-error'        },
+        { id: 'role',       errId: 'role-error'       },
+        { id: 'setting',    errId: 'setting-error'    },
+      ];
+      fields.forEach(function(f) {
+        var el = safeQuery('#' + f.id);
+        if (!el) return;
+        el.addEventListener('input', function() { clearError(f.id, f.errId); });
+        el.addEventListener('change', function() { clearError(f.id, f.errId); });
+      });
+
+      var submitting = false;
+
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (submitting) return;
+
+        var valid = true;
+
+        // Validate
+        var firstName = (safeQuery('#first-name') || {}).value || '';
+        var lastName  = (safeQuery('#last-name')  || {}).value || '';
+        var emailVal  = (safeQuery('#email')       || {}).value || '';
+        var orgVal    = (safeQuery('#org')         || {}).value || '';
+        var roleVal   = (safeQuery('#role')        || {}).value || '';
+        var settingEl = safeQuery('#setting');
+        var settingVal= settingEl ? settingEl.value : '';
+
+        clearError('first-name','first-name-error');
+        clearError('last-name', 'last-name-error');
+        clearError('email',     'email-error');
+        clearError('org',       'org-error');
+        clearError('role',      'role-error');
+        clearError('setting',   'setting-error');
+
+        if (!firstName.trim()) { showError('first-name','first-name-error'); valid = false; }
+        if (!lastName.trim())  { showError('last-name', 'last-name-error');  valid = false; }
+        if (!isValidEmail(emailVal)) { showError('email','email-error'); valid = false; }
+        if (!orgVal.trim())    { showError('org',  'org-error');  valid = false; }
+        if (!roleVal.trim())   { showError('role', 'role-error'); valid = false; }
+        if (!settingVal)       { showError('setting','setting-error'); valid = false; }
+
+        if (!valid) {
+          // Focus first error
+          var firstError = form.querySelector('.form-input.error, select.error');
+          if (firstError) { try { firstError.focus(); } catch(ex) {} }
+          return;
+        }
+
+        // Submit
+        submitting = true;
+        if (submitBtn)  { submitBtn.disabled  = true; }
+        if (submitText) { submitText.style.display = 'none'; }
+        if (submitLoad) { submitLoad.style.display = 'inline'; }
+
+        // Simulate network (replace with actual endpoint)
+        setTimeout(function() {
+          form.style.display = 'none';
+          if (success) {
+            success.style.display = 'block';
+            success.classList.add('visible');
+          }
+          submitting = false;
+        }, 1200);
+      });
+    })();
+
+    // â”€â”€ Mobile menu (graceful â€” no nav links to show on small screen, just CTA) â”€â”€
+    (function() {
+      var btn = safeQuery('#mobile-menu-btn');
+      if (!btn) return;
+      // On mobile, clicking the burger could scroll to pilot
+      btn.addEventListener('click', function() {
+        var pilot = safeQuery('#pilot');
+        if (!pilot) return;
+        var top = pilot.getBoundingClientRect().top + window.pageYOffset - 64;
+        window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+      });
+    })();
+  </script>
+
+</body>
+</html>
